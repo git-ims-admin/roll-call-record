@@ -478,6 +478,23 @@ function makeTimeInputEl(val, field) {
   return inp;
 }
 
+function makeKakuninCell(method, field) {
+  const span = document.createElement('span');
+  span.dataset.field = field;
+  span.style.cssText = [
+    'display:block',
+    'text-align:center',
+    'font-size:15px',
+    'font-weight:700',
+    'color:var(--text)',
+    'min-width:36px',
+    'line-height:1',
+  ].join(';');
+  span.textContent = method ? '〇' : '';
+  return span;
+}
+
+
 function buildEntryTr(ymd, i, e) {
   const tr = document.createElement('tr');
   tr.dataset.idx = i;
@@ -492,52 +509,59 @@ function buildEntryTr(ymd, i, e) {
   tr.appendChild(makeTd(makeSelectEl(driverOptions(e.driver || ''), 'width:90px;', 'driver', 'driver')));
   tr.appendChild(makeTd(makeTextInputEl(e.dest, '80px', 'dest')));
 
+  // g1：乗務前点呼①
   tr.appendChild(makeTd(makeMethodSelEl(e.g1Method || '', 'g1Method')));
   tr.appendChild(makeTd(makeAlcoSelEl(e.g1Alco || '有', 'g1Alco')));
   tr.appendChild(makeTd(makeTextInputEl(e.g1AlcoVal || '0', '36px', 'g1AlcoVal')));
-  tr.appendChild(makeTd(makeTextInputEl(e.g1Kakunin || '', '50px', 'g1Kakunin')));
+  tr.appendChild(makeTd(makeKakuninCell(e.g1Method || '', 'g1Kakunin'))); // ★変更
   tr.appendChild(makeTd(makeTimeInputEl(e.g1Time, 'g1Time')));
   tr.appendChild(makeTd(makeSelectEl(execOptions(e.g1Exec || ''), 'width:90px;', 'g1Exec', 'g1Exec')));
 
+  // g2：乗務途中点呼
   tr.appendChild(makeTd(makeMethodSelEl(e.g2Method || '', 'g2Method')));
   tr.appendChild(makeTd(makeAlcoSelEl(e.g2Alco || '有', 'g2Alco')));
   tr.appendChild(makeTd(makeTextInputEl(e.g2AlcoVal || '0', '36px', 'g2AlcoVal')));
-  tr.appendChild(makeTd(makeTextInputEl(e.g2Kakunin || '', '50px', 'g2Kakunin')));
+  tr.appendChild(makeTd(makeKakuninCell(e.g2Method || '', 'g2Kakunin'))); // ★変更
   tr.appendChild(makeTd(makeTimeInputEl(e.g2Time, 'g2Time')));
   tr.appendChild(makeTd(makeSelectEl(execOptions(e.g2Exec || ''), 'width:90px;', 'g2Exec', 'g2Exec')));
 
+  // g3：乗務後点呼①
   tr.appendChild(makeTd(makeMethodSelEl(e.g3Method || '', 'g3Method')));
   tr.appendChild(makeTd(makeAlcoSelEl(e.g3Alco || '有', 'g3Alco')));
   tr.appendChild(makeTd(makeTextInputEl(e.g3AlcoVal || '0', '36px', 'g3AlcoVal')));
-  tr.appendChild(makeTd(makeTextInputEl(e.g3Kakunin || '', '50px', 'g3Kakunin')));
+  tr.appendChild(makeTd(makeKakuninCell(e.g3Method || '', 'g3Kakunin'))); // ★変更
   tr.appendChild(makeTd(makeTimeInputEl(e.g3Time, 'g3Time')));
   tr.appendChild(makeTd(makeSelectEl(execOptions(e.g3Exec || ''), 'width:90px;', 'g3Exec', 'g3Exec')));
 
+  // g4：乗務前点呼②
   tr.appendChild(makeTd(makeMethodSelEl(e.g4Method || '', 'g4Method')));
   tr.appendChild(makeTd(makeAlcoSelEl(e.g4Alco || '有', 'g4Alco')));
   tr.appendChild(makeTd(makeTextInputEl(e.g4AlcoVal || '0', '36px', 'g4AlcoVal')));
-  tr.appendChild(makeTd(makeTextInputEl(e.g4Kakunin || '', '50px', 'g4Kakunin')));
+  tr.appendChild(makeTd(makeKakuninCell(e.g4Method || '', 'g4Kakunin'))); // ★変更
   tr.appendChild(makeTd(makeTimeInputEl(e.g4Time, 'g4Time')));
   tr.appendChild(makeTd(makeSelectEl(execOptions(e.g4Exec || ''), 'width:90px;', 'g4Exec', 'g4Exec')));
 
+  // g5：乗務後点呼②
   tr.appendChild(makeTd(makeMethodSelEl(e.g5Method || '', 'g5Method')));
   tr.appendChild(makeTd(makeAlcoSelEl(e.g5Alco || '有', 'g5Alco')));
   tr.appendChild(makeTd(makeTextInputEl(e.g5AlcoVal || '0', '36px', 'g5AlcoVal')));
-  tr.appendChild(makeTd(makeTextInputEl(e.g5Kakunin || '', '50px', 'g5Kakunin')));
+  tr.appendChild(makeTd(makeKakuninCell(e.g5Method || '', 'g5Kakunin'))); // ★変更
   tr.appendChild(makeTd(makeTimeInputEl(e.g5Time, 'g5Time')));
   tr.appendChild(makeTd(makeSelectEl(execOptions(e.g5Exec || ''), 'width:90px;', 'g5Exec', 'g5Exec')));
 
+  // g6：乗務前点呼③
   tr.appendChild(makeTd(makeMethodSelEl(e.g6Method || '', 'g6Method')));
   tr.appendChild(makeTd(makeAlcoSelEl(e.g6Alco || '有', 'g6Alco')));
   tr.appendChild(makeTd(makeTextInputEl(e.g6AlcoVal || '0', '36px', 'g6AlcoVal')));
-  tr.appendChild(makeTd(makeTextInputEl(e.g6Kakunin || '', '50px', 'g6Kakunin')));
+  tr.appendChild(makeTd(makeKakuninCell(e.g6Method || '', 'g6Kakunin'))); // ★変更
   tr.appendChild(makeTd(makeTimeInputEl(e.g6Time, 'g6Time')));
   tr.appendChild(makeTd(makeSelectEl(execOptions(e.g6Exec || ''), 'width:90px;', 'g6Exec', 'g6Exec')));
 
+  // g7：乗務後点呼③
   tr.appendChild(makeTd(makeMethodSelEl(e.g7Method || '', 'g7Method')));
   tr.appendChild(makeTd(makeAlcoSelEl(e.g7Alco || '有', 'g7Alco')));
   tr.appendChild(makeTd(makeTextInputEl(e.g7AlcoVal || '0', '36px', 'g7AlcoVal')));
-  tr.appendChild(makeTd(makeTextInputEl(e.g7Kakunin || '', '50px', 'g7Kakunin')));
+  tr.appendChild(makeTd(makeKakuninCell(e.g7Method || '', 'g7Kakunin'))); // ★変更
   tr.appendChild(makeTd(makeTimeInputEl(e.g7Time, 'g7Time')));
   tr.appendChild(makeTd(makeSelectEl(execOptions(e.g7Exec || ''), 'width:90px;', 'g7Exec', 'g7Exec')));
 
@@ -552,10 +576,37 @@ function buildEntryTr(ymd, i, e) {
   return tr;
 }
 
+const METHOD_TO_KAKUNIN = {
+  g1Method: 'g1Kakunin',
+  g2Method: 'g2Kakunin',
+  g3Method: 'g3Kakunin',
+  g4Method: 'g4Kakunin',
+  g5Method: 'g5Kakunin',
+  g6Method: 'g6Kakunin',
+  g7Method: 'g7Kakunin',
+};
+
 async function updateEntry(ymd, i, field, val) {
   const day = getOrCreateDay(ymd);
   if (i < 0 || i >= day.entries.length) return;
   day.entries[i][field] = val;
+
+  // ★ 確認事項の連動：点呼方法が選択されたら自動で "〇" をセット
+  if (METHOD_TO_KAKUNIN[field]) {
+    const kf = METHOD_TO_KAKUNIN[field];
+    const kakuninVal = val ? '〇' : '';
+    day.entries[i][kf] = kakuninVal; // DB保存値にも反映（印刷互換）
+
+    // DOM上のspanを即時更新
+    const tbody = document.getElementById('entry-tbody');
+    if (tbody) {
+      const tr = tbody.querySelector('tr[data-idx="' + i + '"]');
+      if (tr) {
+        const span = tr.querySelector('span[data-field="' + kf + '"]');
+        if (span) span.textContent = kakuninVal;
+      }
+    }
+  }
 
   // 車番→運転者 自動セット
   if (field === 'car') {
@@ -581,7 +632,10 @@ async function updateEntry(ymd, i, field, val) {
   }
 
   // 点呼時間→執行者 自動補完
-  const timeExecMap = { g1Time: 'g1Exec', g2Time: 'g2Exec', g3Time: 'g3Exec', g4Time: 'g4Exec', g5Time: 'g5Exec', g6Time: 'g6Exec', g7Time: 'g7Exec' };
+  const timeExecMap = {
+    g1Time: 'g1Exec', g2Time: 'g2Exec', g3Time: 'g3Exec',
+    g4Time: 'g4Exec', g5Time: 'g5Exec', g6Time: 'g6Exec', g7Time: 'g7Exec'
+  };
   if (timeExecMap[field] && !day.entries[i][timeExecMap[field]]) {
     const exec = resolveExec(ymd, val);
     if (exec) {
