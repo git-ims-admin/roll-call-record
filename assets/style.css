@@ -1,0 +1,474 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface2: #f0f2f7;
+    --border: #d1d9e6;
+    --accent: #2563eb;
+    --accent2: #1d4ed8;
+    --danger: #dc2626;
+    --warn: #d97706;
+    --success: #16a34a;
+    --text: #1e293b;
+    --text-dim: #64748b;
+    --font: 'Noto Sans JP', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* Layout */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-logo h1 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+  }
+  .sidebar-logo p { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .nav-section { padding: 12px 8px 4px; }
+  .nav-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; padding: 0 12px 6px; text-transform: uppercase; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 13px;
+    color: var(--text-dim);
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(59,130,246,0.15); color: var(--accent2); }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar h2 { font-size: 16px; font-weight: 600; }
+  .topbar-meta { font-size: 12px; color: var(--text-dim); font-family: var(--mono); }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Forms */
+  .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
+  .form-group label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.05em; }
+  .form-group input, .form-group select, .form-group textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-group select option { background: var(--surface2); }
+
+  /* Buttons */
+  .btn {
+    padding: 9px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
+  .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.25); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  /* Table */
+  .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(37,99,235,0.04); }
+  .td-mono { font-family: var(--mono); font-size: 12px; }
+
+  /* Toggle cells */
+  .toggle-cell {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    user-select: none;
+    min-width: 50px;
+    display: inline-block;
+    transition: all 0.1s;
+  }
+  .toggle-empty { background: #fefce8; color: #92400e; border: 1px solid #d97706; }
+  .toggle-tel { background: #1d4ed8; color: #fff; }
+  .toggle-taimen { background: #dc2626; color: #fff; }
+
+  /* Page views */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Grid for daily sheet */
+  .daily-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto auto auto;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 8px;
+  }
+
+  /* Date header */
+  .date-header {
+    background: linear-gradient(135deg, var(--surface2), var(--surface));
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .date-header .date-label {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent2);
+  }
+  .date-header .date-sub { font-size: 12px; color: var(--text-dim); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    flex: 1;
+    min-width: 120px;
+  }
+  .stat-card .stat-num { font-size: 26px; font-weight: 700; font-family: var(--mono); color: var(--accent2); }
+  .stat-card .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  /* Alert */
+  .alert {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .alert-info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: var(--accent2); }
+  .alert-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--success); }
+  .alert-warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--warn); }
+
+  /* Modal */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 480px;
+    max-width: 95vw;
+  }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+  /* Tab bar */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .tab-btn {
+    padding: 8px 16px;
+    border-radius: 6px 6px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 13px;
+    background: none;
+    color: var(--text-dim);
+    transition: all 0.15s;
+    position: relative;
+    bottom: -1px;
+  }
+  .tab-btn.active {
+    background: var(--surface);
+    border-color: var(--border);
+    border-bottom-color: var(--surface);
+    color: var(--text);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Daily record row add button */
+  .add-row-btn {
+    width: 100%;
+    padding: 8px;
+    background: rgba(37,99,235,0.04);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 12px;
+    transition: all 0.15s;
+    margin-top: 6px;
+  }
+  .add-row-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* Month selector */
+  .month-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Scroll */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Inspection table */
+  .inspect-tbl td { font-size: 12px; }
+  .inspect-tbl .check-mark {
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    user-select: none;
+    padding: 4px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-blue { background: rgba(59,130,246,0.2); color: var(--accent2); }
+  .badge-red { background: rgba(239,68,68,0.2); color: #f87171; }
+  .badge-green { background: rgba(34,197,94,0.2); color: #4ade80; }
+  .badge-gray { background: rgba(100,116,139,0.2); color: var(--text-dim); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  .export-note { font-size: 12px; color: var(--text-dim); margin-top: 10px; }
+
+  /* ============================================================
+     印刷・PDF出力用スタイル
+     ============================================================ */
+  @media print {
+    /* 用紙を横向きに固定 */
+    @page { size: A4 landscape; margin: 8mm 6mm; }
+
+    /* 印刷時はサイドバー・トップバー・ナビを非表示 */
+    .sidebar, .topbar, .month-picker, .add-row-btn,
+    .btn-danger, #btn-copy-prev, #btn-auto-exec, #btn-clear-day,
+    .tab-bar, .modal-bg, .nav-section, .sidebar-logo { display: none !important; }
+
+    /* レイアウトリセット */
+    html, body { background: #fff !important; color: #000 !important; width: 100% !important; }
+    .app { display: block !important; width: 100% !important; }
+    .main { width: 100% !important; overflow: visible !important; }
+    .content { padding: 0 !important; overflow: visible !important; width: 100% !important; }
+
+    /* カードを白黒印刷対応に */
+    .card {
+      background: #fff !important;
+      border: 1px solid #999 !important;
+      padding: 4px !important;
+      margin-bottom: 4px !important;
+      page-break-inside: avoid;
+    }
+    .card-title { color: #333 !important; border-bottom: 1px solid #ccc; padding-bottom: 2px; margin-bottom: 4px !important; font-size: 8px !important; }
+    .date-header {
+      background: #f5f5f5 !important;
+      border: 1px solid #999 !important;
+      padding: 4px 8px !important;
+      margin-bottom: 4px !important;
+      display: flex !important;
+    }
+    .date-label { color: #000 !important; font-size: 13px !important; }
+    .date-sub { color: #444 !important; font-size: 9px !important; }
+
+    /* テーブル：横幅いっぱいに押し込む */
+    .tbl-wrap {
+      border: none !important;
+      overflow: visible !important;
+      width: 100% !important;
+    }
+    table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      table-layout: auto !important;
+      font-size: 7.5px !important;
+    }
+    th {
+      background: #eee !important;
+      color: #000 !important;
+      border: 1px solid #999 !important;
+      font-size: 7px !important;
+      padding: 2px 2px !important;
+      white-space: normal !important;
+      word-break: break-all !important;
+      line-height: 1.2 !important;
+    }
+    td {
+      color: #000 !important;
+      border: 1px solid #ccc !important;
+      font-size: 7.5px !important;
+      padding: 2px 2px !important;
+      white-space: normal !important;
+      word-break: break-all !important;
+      overflow: hidden !important;
+    }
+    /* 入力要素の表示テキストを印刷に出す */
+    select, input {
+      color: #000 !important;
+      background: transparent !important;
+      border: none !important;
+      font-size: 7.5px !important;
+      width: 100% !important;
+      padding: 0 !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    /* 1〜4列目は小さく固定 */
+    table th:nth-child(1), table td:nth-child(1) { width: 18px !important; white-space: nowrap !important; }  /* # */
+    table th:nth-child(2), table td:nth-child(2) { width: 70px !important; white-space: nowrap !important; }  /* 車番 */
+    table th:nth-child(3), table td:nth-child(3) { width: 52px !important; white-space: nowrap !important; }  /* 運転者 */
+    table th:nth-child(4), table td:nth-child(4) { width: 52px !important; white-space: nowrap !important; }  /* 行き先 */
+    /* 削除ボタン列・指示事項列 */
+    table th:last-child,        table td:last-child        { display: none !important; }  /* 削除ボタン非表示 */
+    table th:nth-last-child(2), table td:nth-last-child(2) { width: 48px !important; white-space: normal !important; word-break: break-all !important; } /* 指示事項 */
+    /* 点呼15列（5〜最後から3列目）は残り幅を均等に */
+    table th:nth-child(n+5):not(:nth-last-child(-n+2)),
+    table td:nth-child(n+5):not(:nth-last-child(-n+2)) {
+      white-space: normal !important;
+      word-break: break-all !important;
+    }
+
+    /* 非アクティブページを印刷から除外 */
+    .page { display: none !important; }
+    .page.print-target { display: block !important; }
+
+    /* 印刷ヘッダ */
+    .print-header { display: block !important; }
+
+    /* 月次印刷は日付ごとに改ページ */
+    .print-day-block { page-break-after: always; }
+    .print-day-block:last-child { page-break-after: auto; }
+  }
+
+  /* 通常表示時は印刷専用要素を隠す */
+  .print-header { display: none; }
+  .print-day-block { /* 通常時はそのまま表示 */ }
