@@ -220,6 +220,9 @@ function tenrec_register_routes() {
     register_rest_route( $ns, '/vehicles/bulk', [
         [ 'methods' => 'POST', 'callback' => 'tenrec_bulk_vehicles', 'permission_callback' => 'tenrec_permission' ],
     ]);
+    register_rest_route( $ns, '/lookup-employee', [
+    [ 'methods' => 'GET', 'callback' => 'tenrec_lookup_employee', 'permission_callback' => 'tenrec_permission' ],
+]);
 }
 
 // パーミッション: ログイン必須 + wp_rest nonceチェック
@@ -452,4 +455,59 @@ function tenrec_bulk_vehicles( WP_REST_Request $req ) {
     }
 
     return rest_ensure_response( [ 'added' => $added, 'updated' => $updated ] );
+}
+
+function tenrec_lookup_employee( WP_REST_Request $req ) {
+    global $wpdb;
+ 
+    // employee-manager が有効かチェック
+    $table = $wpdb->prefix . 'emp_master';
+    if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) {
+        return new WP_Error(
+            'table_not_found',
+            'employee-manager プラグインが有効化されていないか、テーブルが存在しません。',
+            [ 'status' => 503 ]
+        );
+    }
+ 
+    $employee_code = sanitize_text_field( $req->get_param('employee_code') ?? '' );
+    $crew_code     = sanitize_text_field( $req->get_param('crew_code')     ?? '' );
+ 
+    if ( $employee_code === '' && $crew_code === '' ) {
+        return new WP_Error(
+            'missing_param',
+            'employee_code または crew_code のいずれかを指定してください。',
+            [ 'status' => 400 ]
+        );
+    }
+ 
+    // どちらかのコードで検索（employee_code 優先）
+    if ( $employee_code !== '' ) {
+        $row = $wpdb->get_row( $wpdb->prepare(
+            "SELECT id, employee_code, crew_code, name FROM {$table}
+             WHERE employee_code = %s AND is_active = 1 LIMIT 1",
+            $employee_code
+        ), ARRAY_A );
+    } else {
+        $row = $wpdb->get_row( $wpdb->prepare(
+            "SELECT id, employee_code, crew_code, name FROM {$table}
+             WHERE crew_code = %s AND is_active = 1 LIMIT 1",
+            $crew_code
+        ), ARRAY_A );
+    }
+ 
+    if ( ! $row ) {
+        return new WP_Error(
+            'not_found',
+            '該当する在籍社員が見つかりませんでした。',
+            [ 'status' => 404 ]
+        );
+    }
+ 
+    return rest_ensure_response( [
+        'id'            => (int) $row['id'],
+        'name'          => $row['name'],
+        'employee_code' => $row['employee_code'],
+        'crew_code'     => $row['crew_code'] ?? '',
+    ] );
 }

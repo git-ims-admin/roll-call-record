@@ -1112,9 +1112,12 @@ async function deleteExec(id) {
   } catch (e) { alert('削除に失敗しました'); }
 }
 
-async function addVehicle() {
+let _vehEditId = null;
+
+async function saveVehicle() {
   const bureau = document.getElementById('veh-bureau').value.trim();
   if (!bureau) { alert('運輸支局を入力してください。'); return; }
+
   const data = {
     seq: document.getElementById('veh-seq').value.trim(),
     bureau,
@@ -1125,14 +1128,89 @@ async function addVehicle() {
     driver: document.getElementById('veh-driver').value.trim(),
     tel: document.getElementById('veh-tel').value.trim(),
   };
+
   try {
-    const res = await apiPost('vehicles', data);
-    vehicleMaster.push({ id: res.id, ...data });
-    ['veh-seq', 'veh-bureau', 'veh-class', 'veh-usage', 'veh-num', 'veh-driver', 'veh-tel'].forEach(id => {
+    if (_vehEditId !== null) {
+      // 編集モード：PUT で更新
+      await apiPut(`vehicles/${_vehEditId}`, data);
+      const idx = vehicleMaster.findIndex(v => v.id === _vehEditId);
+      if (idx !== -1) vehicleMaster[idx] = { id: _vehEditId, ...data };
+    } else {
+      // 新規追加モード：POST
+      const res = await apiPost('vehicles', data);
+      vehicleMaster.push({ id: res.id, ...data });
+    }
+    cancelVehicleEdit(); // フォームリセット
+    renderMasterTables();
+  } catch (e) { alert('保存に失敗しました: ' + e.message); }
+}
+
+// フォームに既存データをロードして編集モードへ
+function editVehicle(id) {
+  const v = vehicleMaster.find(v => v.id === id);
+  if (!v) return;
+
+  _vehEditId = id;
+
+  document.getElementById('veh-seq').value = v.seq || '';
+  document.getElementById('veh-bureau').value = v.bureau || '';
+  document.getElementById('veh-class').value = v.classNo || '';
+  document.getElementById('veh-usage').value = v.usage || '';
+  document.getElementById('veh-num').value = v.num || '';
+  document.getElementById('veh-type').value = v.type || '低床冷蔵ウイング';
+  document.getElementById('veh-driver').value = v.driver || '';
+  document.getElementById('veh-tel').value = v.tel || '';
+  document.getElementById('veh-employee-code').value = '';
+  document.getElementById('veh-crew-code').value = '';
+  document.getElementById('veh-lookup-status').textContent = '';
+
+  // フォームタイトル・ボタンを編集モード表示に切り替え
+  document.getElementById('veh-form-title').textContent = '✏️ 車両・運転者マスタ（編集中）';
+  document.getElementById('veh-save-btn').textContent = '💾 更新';
+  document.getElementById('veh-cancel-btn').style.display = '';
+
+  // フォームまでスクロール
+  document.getElementById('veh-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// 編集キャンセル・フォームリセット
+function cancelVehicleEdit() {
+  _vehEditId = null;
+
+  ['veh-seq', 'veh-bureau', 'veh-class', 'veh-usage', 'veh-num',
+    'veh-driver', 'veh-tel', 'veh-employee-code', 'veh-crew-code'].forEach(id => {
       document.getElementById(id).value = '';
     });
-    renderMasterTables();
-  } catch (e) { alert('追加に失敗しました: ' + e.message); }
+  document.getElementById('veh-lookup-status').textContent = '';
+  document.getElementById('veh-form-title').textContent = '🚛 車両・運転者マスタ（手動追加）';
+  document.getElementById('veh-save-btn').textContent = '＋ 追加';
+  document.getElementById('veh-cancel-btn').style.display = 'none';
+}
+
+// 社員コード or 乗組員コードで氏名を検索してフォームに自動セット
+async function lookupEmployee(codeType) {
+  const inputId = codeType === 'employee_code' ? 'veh-employee-code' : 'veh-crew-code';
+  const codeVal = document.getElementById(inputId).value.trim();
+  const statusEl = document.getElementById('veh-lookup-status');
+
+  if (!codeVal) return;
+
+  statusEl.textContent = '🔍 検索中...';
+  statusEl.style.color = 'var(--text-dim)';
+
+  try {
+    const res = await apiGet(`lookup-employee?${codeType}=${encodeURIComponent(codeVal)}`);
+    document.getElementById('veh-driver').value = res.name;
+    statusEl.textContent = `✅ ${res.name} を取得しました`;
+    statusEl.style.color = 'var(--success, #22c55e)';
+  } catch (e) {
+    // 404 = 見つからない, 503 = employee-manager 未導入
+    const msg = e.message.includes('503') ? '⚠️ employee-manager が未有効化です'
+      : e.message.includes('404') ? '❌ 該当する社員が見つかりません'
+        : '❌ 検索エラー';
+    statusEl.textContent = msg;
+    statusEl.style.color = '#ef4444';
+  }
 }
 
 async function deleteVehicle(id) {
@@ -1226,6 +1304,7 @@ function exportVehicleCSV() {
 }
 
 function renderMasterTables() {
+  // 執行者マスタ（変更なし）
   let html = `<div class="tbl-wrap"><table>
     <thead><tr><th>名前</th><th>曜日区分</th><th>開始</th><th>終了</th><th></th></tr></thead><tbody>`;
   if (!execMaster.length) html += `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);">データなし</td></tr>`;
@@ -1236,16 +1315,31 @@ function renderMasterTables() {
   html += '</tbody></table></div>';
   document.getElementById('exec-table').innerHTML = html;
 
+  // 車両・運転者マスタ（編集ボタン追加）
   html = `<div class="tbl-wrap"><table>
-    <thead><tr><th>ID</th><th>運輸支局</th><th>分類番号</th><th>用途区別</th><th>一連指定番号</th><th>形状</th><th>乗務員</th><th>携帯電話番号</th><th></th></tr></thead><tbody>`;
-  if (!vehicleMaster.length) html += `<tr><td colspan="9" style="text-align:center;color:var(--text-dim);">データなし</td></tr>`;
+    <thead><tr>
+      <th>ID</th><th>運輸支局</th><th>分類番号</th><th>用途区別</th>
+      <th>一連指定番号</th><th>形状</th><th>乗務員</th><th>携帯電話番号</th><th></th>
+    </tr></thead><tbody>`;
+  if (!vehicleMaster.length) {
+    html += `<tr><td colspan="9" style="text-align:center;color:var(--text-dim);">データなし</td></tr>`;
+  }
   vehicleMaster.forEach(v => {
     html += `<tr>
-      <td class="td-mono">${v.seq || '—'}</td><td>${v.bureau || '—'}</td>
-      <td class="td-mono">${v.classNo || '—'}</td><td>${v.usage || '—'}</td>
-      <td class="td-mono">${v.num || '—'}</td><td>${v.type || '—'}</td>
-      <td>${v.driver || '—'}</td><td class="td-mono">${v.tel || '—'}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteVehicle(${v.id})">削除</button></td></tr>`;
+      <td class="td-mono">${v.seq || '—'}</td>
+      <td>${v.bureau || '—'}</td>
+      <td class="td-mono">${v.classNo || '—'}</td>
+      <td>${v.usage || '—'}</td>
+      <td class="td-mono">${v.num || '—'}</td>
+      <td>${v.type || '—'}</td>
+      <td>${v.driver || '—'}</td>
+      <td class="td-mono">${v.tel || '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-secondary btn-sm" onclick="editVehicle(${v.id})"
+                style="margin-right:4px;">編集</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${v.id})">削除</button>
+      </td>
+    </tr>`;
   });
   html += '</tbody></table></div>';
   document.getElementById('vehicle-table').innerHTML = html;
@@ -1556,8 +1650,11 @@ function injectAppHTML() {
             </div>
             <div id="csv-preview"></div>
           </div>
-          <div class="card">
-            <div class="card-title">🚛 車両・運転者マスタ（手動追加）</div>
+            <div class="card" id="veh-form-card">
+            <div class="card-title" id="veh-form-title">🚛 車両・運転者マスタ（手動追加）</div>
+            <input type="hidden" id="veh-edit-id" value="">
+ 
+            <!-- 車両情報 -->
             <div class="form-row">
               <div class="form-group" style="max-width:80px;"><label>ID</label><input type="text" id="veh-seq" placeholder="1"></div>
               <div class="form-group"><label>運輸支局</label><input type="text" id="veh-bureau" placeholder="例：青森"></div>
@@ -1565,12 +1662,38 @@ function injectAppHTML() {
               <div class="form-group" style="max-width:80px;"><label>用途区別</label><input type="text" id="veh-usage" placeholder="あ"></div>
               <div class="form-group" style="max-width:100px;"><label>一連指定番号</label><input type="text" id="veh-num" placeholder="1234"></div>
               <div class="form-group"><label>形状</label><select id="veh-type"><option>低床冷蔵ウイング</option><option>高床冷蔵ウイング</option><option>平ボディ</option><option>その他</option></select></div>
-              <div class="form-group"><label>乗務員</label><input type="text" id="veh-driver" placeholder="名前"></div>
-              <div class="form-group"><label>携帯電話番号</label><input type="tel" id="veh-tel" placeholder="090-xxxx-xxxx"></div>
-              <div class="form-group" style="justify-content:flex-end;flex-direction:row;align-items:flex-end;">
-                <button class="btn btn-primary" onclick="addVehicle()">＋ 追加</button>
+            </div>
+ 
+            <!-- 乗務員コード検索 -->
+            <div class="form-row" style="align-items:flex-end;gap:8px;flex-wrap:wrap;">
+              <div class="form-group" style="max-width:160px;">
+                <label>社員コード</label>
+                <input type="text" id="veh-employee-code" placeholder="例：E0001"
+                       onblur="lookupEmployee('employee_code')">
+              </div>
+              <div class="form-group" style="max-width:160px;">
+                <label>乗組員コード</label>
+                <input type="text" id="veh-crew-code" placeholder="例：C001"
+                       onblur="lookupEmployee('crew_code')">
+              </div>
+              <div class="form-group" style="flex:1;min-width:140px;">
+                <label>乗務員氏名
+                  <span id="veh-lookup-status" style="font-size:11px;margin-left:6px;"></span>
+                </label>
+                <input type="text" id="veh-driver" placeholder="コード入力で自動取得、または直接入力">
+              </div>
+              <div class="form-group" style="max-width:180px;">
+                <label>携帯電話番号</label>
+                <input type="tel" id="veh-tel" placeholder="090-xxxx-xxxx">
               </div>
             </div>
+ 
+            <!-- ボタン -->
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+              <button class="btn btn-secondary" id="veh-cancel-btn" onclick="cancelVehicleEdit()" style="display:none;">キャンセル</button>
+              <button class="btn btn-primary" id="veh-save-btn" onclick="saveVehicle()">＋ 追加</button>
+            </div>
+          </div>
           </div>
           <div id="vehicle-table"></div>
         </div>
