@@ -933,7 +933,7 @@ async function buildList() {
     </tr>`;
   }
   html += '</tbody></table></div>';
-  document.getElementById('vehicle-table').innerHTML = typeManagerHtml + html;  // ← この1行に
+  document.getElementById('list-content').innerHTML = html;
 }
 
 function exportCSV() {
