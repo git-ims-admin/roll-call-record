@@ -933,7 +933,6 @@ async function buildList() {
     </tr>`;
   }
   html += '</tbody></table></div>';
-  refreshVehicleTypeDatalist();
   document.getElementById('vehicle-table').innerHTML = typeManagerHtml + html;  // ← この1行に
 }
 
