@@ -76,7 +76,7 @@ async function loadAllData() {
     execMaster = execs;
     vehicleMaster = vehicles;
     vehicleTypes = types;
-
+    refreshVehicleTypeDatalist(); // ← 追加
     // 当月の日次データを取得
     const now = new Date();
     const ym = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, '0');
