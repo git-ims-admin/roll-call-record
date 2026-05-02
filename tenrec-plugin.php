@@ -222,7 +222,12 @@ function tenrec_register_routes() {
     ]);
     register_rest_route( $ns, '/lookup-employee', [
     [ 'methods' => 'GET', 'callback' => 'tenrec_lookup_employee', 'permission_callback' => 'tenrec_permission' ],
-]);
+    ]);
+        register_rest_route( $ns, '/vehicle-types', [
+        [ 'methods' => 'GET',    'callback' => 'tenrec_get_vehicle_types',    'permission_callback' => 'tenrec_permission' ],
+        [ 'methods' => 'POST',   'callback' => 'tenrec_add_vehicle_type',     'permission_callback' => 'tenrec_permission' ],
+        [ 'methods' => 'DELETE', 'callback' => 'tenrec_delete_vehicle_type',  'permission_callback' => 'tenrec_permission' ],
+    ]);
 }
 
 // パーミッション: ログイン必須 + wp_rest nonceチェック
@@ -510,4 +515,78 @@ function tenrec_lookup_employee( WP_REST_Request $req ) {
         'employee_code' => $row['employee_code'],
         'crew_code'     => $row['crew_code'] ?? '',
     ] );
+}
+define( 'TENREC_VEHICLE_TYPES_KEY', 'tenrec_vehicle_types' );
+ 
+// デフォルトの形状一覧
+function tenrec_default_vehicle_types() {
+    return [ '低床冷蔵ウイング', '高床冷蔵ウイング', '平ボディ', 'その他' ];
+}
+ 
+// 現在の形状一覧を取得
+function tenrec_get_vehicle_types_list() {
+    $saved = get_option( TENREC_VEHICLE_TYPES_KEY, null );
+    if ( $saved === null ) {
+        // 初回アクセス時はデフォルト値を保存してから返す
+        $defaults = tenrec_default_vehicle_types();
+        update_option( TENREC_VEHICLE_TYPES_KEY, wp_json_encode( $defaults, JSON_UNESCAPED_UNICODE ) );
+        return $defaults;
+    }
+    return json_decode( $saved, true ) ?: tenrec_default_vehicle_types();
+}
+ 
+/**
+ * GET /wp-json/tenrec/v1/vehicle-types
+ * 形状選択肢の一覧を返す
+ */
+function tenrec_get_vehicle_types( WP_REST_Request $req ) {
+    return rest_ensure_response( tenrec_get_vehicle_types_list() );
+}
+ 
+/**
+ * POST /wp-json/tenrec/v1/vehicle-types
+ * 新しい形状を追加する（重複は無視）
+ *
+ * body: { "type": "低温冷凍車" }
+ */
+function tenrec_add_vehicle_type( WP_REST_Request $req ) {
+    $body     = $req->get_json_params();
+    $new_type = sanitize_text_field( $body['type'] ?? '' );
+ 
+    if ( $new_type === '' ) {
+        return new WP_Error( 'empty_type', '形状名を入力してください。', [ 'status' => 400 ] );
+    }
+ 
+    $types = tenrec_get_vehicle_types_list();
+ 
+    // 重複チェック
+    if ( in_array( $new_type, $types, true ) ) {
+        return rest_ensure_response( [ 'ok' => true, 'added' => false, 'types' => $types ] );
+    }
+ 
+    $types[] = $new_type;
+    update_option( TENREC_VEHICLE_TYPES_KEY, wp_json_encode( $types, JSON_UNESCAPED_UNICODE ) );
+ 
+    return rest_ensure_response( [ 'ok' => true, 'added' => true, 'types' => $types ] );
+}
+ 
+/**
+ * DELETE /wp-json/tenrec/v1/vehicle-types
+ * 指定した形状を削除する
+ *
+ * body: { "type": "その他" }
+ */
+function tenrec_delete_vehicle_type( WP_REST_Request $req ) {
+    $body = $req->get_json_params();
+    $del  = sanitize_text_field( $body['type'] ?? '' );
+ 
+    if ( $del === '' ) {
+        return new WP_Error( 'empty_type', '形状名を指定してください。', [ 'status' => 400 ] );
+    }
+ 
+    $types = tenrec_get_vehicle_types_list();
+    $types = array_values( array_filter( $types, fn($t) => $t !== $del ) );
+    update_option( TENREC_VEHICLE_TYPES_KEY, wp_json_encode( $types, JSON_UNESCAPED_UNICODE ) );
+ 
+    return rest_ensure_response( [ 'ok' => true, 'types' => $types ] );
 }

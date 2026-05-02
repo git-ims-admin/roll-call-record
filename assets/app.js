@@ -42,11 +42,16 @@ async function apiPut(path, body) {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
-async function apiDelete(path) {
-  const res = await fetch(CFG.restUrl + path, {
+async function apiDelete(path, body = null) {
+  const opts = {
     method: 'DELETE',
-    headers: { 'X-Tenrec-Nonce': CFG.nonce, 'X-WP-Nonce': CFG.nonce }
-  });
+    headers: { 'X-Tenrec-Nonce': CFG.nonce, 'X-WP-Nonce': CFG.nonce },
+  };
+  if (body) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(CFG.restUrl + path, opts);
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
@@ -57,17 +62,20 @@ async function apiDelete(path) {
 let dailyData = {};   // { YYYYMMDD: { manager, helper, entries:[...] } }
 let execMaster = [];
 let vehicleMaster = [];
+let vehicleTypes = [];
 
 // 初期データをDBから一括取得
 async function loadAllData() {
   showLoading(true);
   try {
-    const [execs, vehicles] = await Promise.all([
+    const [execs, vehicles, types] = await Promise.all([
       apiGet('execs'),
       apiGet('vehicles'),
+      apiGet('vehicle-types'),
     ]);
     execMaster = execs;
     vehicleMaster = vehicles;
+    vehicleTypes = types;
 
     // 当月の日次データを取得
     const now = new Date();
@@ -79,6 +87,14 @@ async function loadAllData() {
   } finally {
     showLoading(false);
   }
+}
+
+function refreshVehicleTypeDatalist() {
+  const dl = document.getElementById('veh-type-list');
+  if (!dl) return;
+  dl.innerHTML = vehicleTypes
+    .map(t => `<option value="${t.replace(/"/g, '&quot;')}">`)
+    .join('');
 }
 
 // 指定月のデータをDBから取得してdailyDataにマージ
@@ -917,7 +933,29 @@ async function buildList() {
     </tr>`;
   }
   html += '</tbody></table></div>';
-  document.getElementById('list-content').innerHTML = html;
+  refreshVehicleTypeDatalist();
+
+  const typeListHtml = vehicleTypes.map(t => `
+    <span style="display:inline-flex;align-items:center;gap:4px;
+                 background:var(--card-bg,#1e293b);border:1px solid var(--border);
+                 border-radius:16px;padding:3px 10px;font-size:12px;margin:3px;">
+      ${t}
+      <button onclick="deleteVehicleType('${t.replace(/'/g, "\\'")}')"
+              style="background:none;border:none;color:var(--text-dim);cursor:pointer;
+                     font-size:13px;line-height:1;padding:0 0 0 4px;"
+              title="削除">✕</button>
+    </span>`).join('');
+
+  const typeManagerHtml = `
+    <div style="margin-bottom:12px;padding:12px;background:var(--card-bg,#1e293b);
+                border:1px solid var(--border);border-radius:8px;">
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">
+        🏷️ 形状マスタ（登録済み選択肢）
+      </div>
+      <div id="type-chips">${typeListHtml || '<span style="color:var(--text-dim);font-size:12px;">未登録</span>'}</div>
+    </div>`;
+
+  document.getElementById('vehicle-table').innerHTML = typeManagerHtml + html;  // ← この1行に
 }
 
 function exportCSV() {
@@ -1128,6 +1166,18 @@ async function saveVehicle() {
     driver: document.getElementById('veh-driver').value.trim(),
     tel: document.getElementById('veh-tel').value.trim(),
   };
+  if (data.type && !vehicleTypes.includes(data.type)) {
+    try {
+      const res = await apiPost('vehicle-types', { type: data.type });
+      if (res.added) {
+        vehicleTypes = res.types;
+        refreshVehicleTypeDatalist();
+      }
+    } catch (e) {
+      console.warn('形状の自動登録に失敗しました:', e.message);
+      // 保存処理は継続する
+    }
+  }
 
   try {
     if (_vehEditId !== null) {
@@ -1219,6 +1269,18 @@ async function deleteVehicle(id) {
     vehicleMaster = vehicleMaster.filter(v => v.id !== id);
     renderMasterTables();
   } catch (e) { alert('削除に失敗しました'); }
+}
+
+async function deleteVehicleType(type) {
+  if (!confirm(`「${type}」を選択肢から削除しますか？\n※ 既存の車両データには影響しません。`)) return;
+  try {
+    const res = await apiDelete('vehicle-types', { type });
+    vehicleTypes = res.types;
+    refreshVehicleTypeDatalist();
+    renderMasterTables();
+  } catch (e) {
+    alert('削除に失敗しました: ' + e.message);
+  }
 }
 
 // CSV関連（車両マスタ）
@@ -1661,9 +1723,13 @@ function injectAppHTML() {
               <div class="form-group" style="max-width:90px;"><label>分類番号</label><input type="text" id="veh-class" placeholder="100"></div>
               <div class="form-group" style="max-width:80px;"><label>用途区別</label><input type="text" id="veh-usage" placeholder="あ"></div>
               <div class="form-group" style="max-width:100px;"><label>一連指定番号</label><input type="text" id="veh-num" placeholder="1234"></div>
-              <div class="form-group"><label>形状</label><select id="veh-type"><option>低床冷蔵ウイング</option><option>高床冷蔵ウイング</option><option>平ボディ</option><option>その他</option></select></div>
-            </div>
- 
+              <div class="form-group" style="min-width:160px;">
+                <label>形状</label>
+                <input type="text" id="veh-type" list="veh-type-list"
+                       placeholder="選択または自由入力"
+                       style="width:100%;">
+                <datalist id="veh-type-list"></datalist>
+              </div>
             <!-- 乗務員コード検索 -->
             <div class="form-row" style="align-items:flex-end;gap:8px;flex-wrap:wrap;">
               <div class="form-group" style="max-width:160px;">
