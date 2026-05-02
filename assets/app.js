@@ -934,27 +934,6 @@ async function buildList() {
   }
   html += '</tbody></table></div>';
   refreshVehicleTypeDatalist();
-
-  const typeListHtml = vehicleTypes.map(t => `
-    <span style="display:inline-flex;align-items:center;gap:4px;
-                 background:var(--card-bg,#1e293b);border:1px solid var(--border);
-                 border-radius:16px;padding:3px 10px;font-size:12px;margin:3px;">
-      ${t}
-      <button onclick="deleteVehicleType('${t.replace(/'/g, "\\'")}')"
-              style="background:none;border:none;color:var(--text-dim);cursor:pointer;
-                     font-size:13px;line-height:1;padding:0 0 0 4px;"
-              title="削除">✕</button>
-    </span>`).join('');
-
-  const typeManagerHtml = `
-    <div style="margin-bottom:12px;padding:12px;background:var(--card-bg,#1e293b);
-                border:1px solid var(--border);border-radius:8px;">
-      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">
-        🏷️ 形状マスタ（登録済み選択肢）
-      </div>
-      <div id="type-chips">${typeListHtml || '<span style="color:var(--text-dim);font-size:12px;">未登録</span>'}</div>
-    </div>`;
-
   document.getElementById('vehicle-table').innerHTML = typeManagerHtml + html;  // ← この1行に
 }
 
